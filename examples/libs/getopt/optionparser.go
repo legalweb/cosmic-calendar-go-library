@@ -97,6 +97,8 @@ func (o *OptionParser) ParseArray(p []string) (*Option, error) {
 			return nil, err
 		}
 	}
+
+	return option, nil
 }
 
 func (o *OptionParser) CompleteOptionArray(row []string) []string {
