@@ -18,7 +18,7 @@ func (w *WithOptions) AddOptionString(option string) (*WithOptions, error) {
 		return nil, err
 	}
 
-	return w.AddOptions(options), nil
+	return w.AddOptions(options)
 }
 
 func (w *WithOptions) AddOptionArray(s []string) (*WithOptions, error) {
@@ -29,17 +29,20 @@ func (w *WithOptions) AddOptionArray(s []string) (*WithOptions, error) {
 		return nil, err
 	}
 
-	return w.AddOption(*option), nil
+	return w.AddOption(*option)
 }
 
-func (w *WithOptions) AddOptions(options []Option) *WithOptions {
+func (w *WithOptions) AddOptions(options []Option) (*WithOptions, error) {
 	if len(options) > 0 {
 		for _, option := range options {
-			w.AddOption(option)
+			_, err := w.AddOption(option)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
-	return w
+	return w, nil
 }
 
 func (w *WithOptions) AddOption(option Option) (*WithOptions, error) {
@@ -62,7 +65,7 @@ func (w *WithOptions) AddOption(option Option) (*WithOptions, error) {
 	return w, nil
 }
 
-func (w *WithOptions) Conflict(option Option) bool {
+func (w *WithOptions) Conflicts(option Option) bool {
 	short := option.GetShort()
 	long := option.GetLong()
 

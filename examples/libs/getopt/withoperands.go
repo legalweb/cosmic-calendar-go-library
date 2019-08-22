@@ -6,18 +6,21 @@ import (
 )
 
 type WithOperands struct {
-	operands []Operand
+	operands []*Operand
 }
 
-func (w *WithOperands) AddOperands(operands []Operand) *WithOperands {
+func (w *WithOperands) AddOperands(operands []*Operand) (*WithOperands, error) {
 	for _, o := range operands {
-		w.AddOperand(o)
+		_, err := w.AddOperand(o)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return w
+	return w, nil
 }
 
-func (w *WithOperands) AddOperand(operand Operand) (*WithOperands, error) {
+func (w *WithOperands) AddOperand(operand *Operand) (*WithOperands, error) {
 	if operand.IsRequired() {
 		for _, p := range w.operands {
 			p.Required(true)
@@ -37,7 +40,7 @@ func (w *WithOperands) AddOperand(operand Operand) (*WithOperands, error) {
 }
 
 
-func (w *WithOperands) GetOperands() []Operand {
+func (w *WithOperands) GetOperands() []*Operand {
 	return w.operands
 }
 
@@ -47,7 +50,7 @@ func (w *WithOperands) GetOperand(index interface{}) *Operand {
 		name := index.(string)
 		for _, o := range w.operands {
 			if o.GetName() == name {
-				return &o
+				return o
 			}
 		}
 		return nil
@@ -55,7 +58,7 @@ func (w *WithOperands) GetOperand(index interface{}) *Operand {
 		if index.(int) >= len(w.operands) || index.(int) < 0 {
 			return nil
 		}
-		return &w.operands[index.(int)]
+		return w.operands[index.(int)]
 	}
 
 	return nil

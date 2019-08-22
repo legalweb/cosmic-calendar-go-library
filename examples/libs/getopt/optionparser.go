@@ -6,13 +6,13 @@ import (
 	"regexp"
 )
 
-type OptionParser struct {
-	defaultMode string
-}
+var defaultOptionParserMode = NO_ARGUMENT
+
+type OptionParser struct {}
 
 func NewOptionParser(mode string) *OptionParser {
 	o := new (OptionParser)
-	o.defaultMode = mode
+	defaultOptionParserMode = mode
 	return o
 }
 
@@ -116,7 +116,7 @@ func (o *OptionParser) CompleteOptionArray(row []string) []string {
 		long = row[1]
 	}
 
-	mode := o.defaultMode
+	mode := defaultOptionParserMode
 
 	if len(row) == 2 && row[1][0] == ':' {
 		mode = row[1]

@@ -10,7 +10,7 @@ const MAX_WIDTH = "maxWidth"
 const HIDE_OPERANDS = "hideOperands"
 
 type HelpInterface interface {
-	render(GetOpt, []string) string
+	Render(*GetOpt, map[string]string) string
 }
 
 type Help struct {

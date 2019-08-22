@@ -1,7 +1,8 @@
 package getopt
 
-type addOperandFunc func(GetOpt, string)
+type addOperandFunc func(*GetOpt, string) error
 type getValueFunc func() string
-type setOptionFunc func(GetOpt, string, getValueFunc)
-type setCommandFunc func(GetOpt)
+type handlerFunc func()
+type setOptionFunc func(*GetOpt, string, getValueFunc) error
+type setCommandFunc func(*GetOpt, *Command) error
 type validationFunc func(args ...string) bool

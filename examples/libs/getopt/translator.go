@@ -1,9 +1,83 @@
 package getopt
 
-type Translator struct {
+import (
+	"errors"
+	"fmt"
+	"lwebco.de/cosmic-calendar-go-library/examples/libs/getopt/localization"
+	"strings"
+)
 
+var fallbackTranslator *Translator
+
+type Translator struct {
+	languageFile string
+	translations map[string]string
 }
 
-func (t *Translator) Translate(s string) string {
-	return s
+func NewTranslator(language string, asFallback ...bool) (*Translator, error) {
+	l := new(Translator)
+
+	if language == "" {
+		language = "en"
+	}
+
+	if !l.SetLanguage(language) {
+		return nil, errors.New(fmt.Sprintf("language %s is not available", language))
+	}
+
+	if fallbackTranslator == nil && (len(asFallback) == 0 || asFallback[0] == false) {
+		fallbackTranslator, _ = NewTranslator("en", true)
+	}
+
+	return l, nil
+}
+
+func (t *Translator) Translate(key string) string {
+	if t.translations == nil {
+		t.LoadTranslations()
+	}
+
+	v, isset := t.translations[key]
+
+	if !isset {
+		if t != fallbackTranslator {
+			return fallbackTranslator.Translate(key)
+		}
+
+		return key
+	}
+
+	return v
+}
+
+func (t *Translator) SetLanguage(language string) bool {
+	language = strings.ToLower(language)
+	switch language {
+	case "en":
+		fallthrough
+	case "engb":
+		fallthrough
+	case "en-gb":
+		t.languageFile = "LangEN"
+		return true
+	case "fr":
+		t.languageFile = "LangFR"
+		return true
+	case "de":
+		t.languageFile = "LangDE"
+		return true
+	}
+
+	return false
+}
+
+func (t *Translator) LoadTranslations() {
+	switch t.languageFile {
+	case "LangEN":
+		t.translations = localization.LangEN
+	case "LangFR":
+		t.translations = localization.LangFR
+	case "LangDE":
+		t.translations = localization.LangDE
+	}
 }

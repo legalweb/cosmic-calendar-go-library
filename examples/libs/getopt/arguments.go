@@ -13,7 +13,7 @@ func NewArguments(arguments []string) *Arguments {
 	return a
 }
 
-func (a *Arguments) Process(getopt GetOpt, setOption setOptionFunc, setCommand setCommandFunc, addOperand addOperandFunc) {
+func (a *Arguments) Process(getopt *GetOpt, setOption setOptionFunc, setCommand setCommandFunc, addOperand addOperandFunc) {
 	for i := len(a.arguments) - 1; i >= 0; i -- {
 		arg := a.arguments[i]
 		a.arguments = a.arguments[0:i]
@@ -26,6 +26,10 @@ func (a *Arguments) Process(getopt GetOpt, setOption setOptionFunc, setCommand s
 		if a.isValue(arg) {
 			operands := getopt.GetOperands()
 		}
+		dfds
+		dfdsf
+		sdfdsf sdf
+		sdf
 	}
 }
 
