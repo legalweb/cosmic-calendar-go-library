@@ -131,11 +131,11 @@ func (h *Help) renderUsage() string {
 }
 
 func (h *Help) renderOperands() string {
-	data := make(map[string]string)
+	data := make([]string, 0)
 	definitionWidth := 0
 	hasDescriptions := false
 
-	for _, operand := range h.getOpt.GetOperandObjects() {
+	for _, operand := range h.getOpt.WithOperands.GetOperands() {
 		definition := h.surround(operand.GetName(), h.texts["placeholder"])
 		if !operand.IsRequired() {
 			definition = h.surround(definition, h.texts["optional"])
@@ -145,7 +145,7 @@ func (h *Help) renderOperands() string {
 			definitionWidth = len(definition)
 		}
 
-		if operand.GetDescription() {
+		if operand.GetDescription() != "" {
 			hasDescriptions = true
 		}
 
@@ -159,11 +159,72 @@ func (h *Help) renderOperands() string {
 	return h.GetText("operands-title") + h.renderColumns(definitionWidth, data) + "\n"
 }
 
-func (h *Help) renderOptions() {
-	data := make(map[string]string)
+func (h *Help) renderOptions() string {
+	data := make([]string, 0)
 	definitionWidth := 0
 
-	for _, option := range h.getOpt.GetOptionObjects() {
-		definition := strings.Join(,h.texts["options-listing"])
+	for _, option := range h.getOpt.WithOptions.GetOptions() {
+		optionStrings := make([]string,0)
+		if option.GetShort() != '\x00' {
+			optionStrings = append(optionStrings, "-" + string(option.GetShort()))
+		}
+		if option.GetLong() != "" {
+			optionStrings = append(optionStrings, "--" + string(option.GetLong()))
+		}
+
+		definition := strings.Join(optionStrings,h.texts["options-listing"])
+
+		if option.GetMode() != NO_ARGUMENT {
+			argument := h.surround(option.GetArgument().GetName(), h.texts["placeholder"])
+			if option.GetMode() == OPTIONAL_ARGUMENT {
+				argument = h.surround(argument, h.texts["optional"])
+			}
+
+			definition += " " + argument
+		}
+
+		if len(definition) > definitionWidth {
+			definitionWidth = len(definition)
+		}
+
+		data = append(data, definition, option.GetDescription())
 	}
+
+	return h.GetText("options-title") + h.renderColumns(definitionWidth, data) + "\n"
 }
+
+func (h *Help) renderCommands() {
+	data := make([]string, 0)
+	nameWidth := 0
+
+	for _, command := range h.getOpt.GetCommands() {
+		if len(command.GetName()) > nameWidth {
+			nameWidth = len(command.GetName())
+		}
+
+		data = append(data, command.GetName(), command.GetShortDescription())
+	}
+
+	return h.GetText("commands-title") + h.renderColumns(nameWidth, data) + "\n"
+}
+
+func (h *Help) renderUsageCommand() string {
+	command := h.getOpt.GetCommand("")
+
+	if command != nil {
+		return command.GetName() + " "
+	} else if h.getOpt.HasCommands() {
+		return h.surround(h.GetText("usage-command"), h.texts["placeholder"]) + " "
+	}
+
+	return ""
+}
+
+func (h *Help) renderUsageOptions() string {
+	if h.getOpt.HasOptions() || len(h.getOpt.Get(SETTING_STRICT_OPTIONS)) > 0 {
+		return h.surround(h.GetText("usage-options"), h.texts["optional"]) + " "
+	}
+
+	return ""
+}
+
