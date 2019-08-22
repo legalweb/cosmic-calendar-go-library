@@ -15,7 +15,7 @@ const MULTIPLE_ARGUMENT = ":multipleArg"
 var SETTING_COMMAND_NAME = "scriptName"
 var SETTING_DEFAULT_MODE = "defaultMode"
 var SETTING_STRICT_OPTIONS = "strictOptions"
-var SETTING_STRICT_OPERANCDS = "strictOperands"
+var SETTING_STRICT_OPERANDS = "strictOperands"
 
 var defaultTranslator *Translator
 
@@ -35,6 +35,9 @@ type GetOpt struct {
 
 func NewGetOpt(options string, settings map[string]string) (*GetOpt, error) {
 	g := new(GetOpt)
+
+	g.settings[SETTING_STRICT_OPTIONS] = "1"
+	g.settings[SETTING_STRICT_OPERANDS] = ""
 
 	args := os.Args
 
@@ -83,11 +86,11 @@ func (g *GetOpt) Process(args ...string) error {
 		arguments = NewArguments(args)
 	}
 
-	setOption := func(g *GetOpt, name string, getValue getValueFunc) error {
+	setOption := func(name string, getValue getValueFunc) error {
 		option := g.GetOption(name)
 
 		if option == nil {
-			if len(g.Get(SETTING_STRICT_OPTIONS)) > 0 {
+			if g.Get(SETTING_STRICT_OPTIONS) != "" {
 				value := getValue()
 				if len(value) == 0 {
 					value = "1"
@@ -111,9 +114,14 @@ func (g *GetOpt) Process(args ...string) error {
 		return nil
 	}
 
-	setCommand := func(g *GetOpt, command *Command) error {
-		g.AddOptions(command.GetOptions())
-		_, err := g.AddOperands(command.GetOperands())
+	setCommand := func(command *Command) error {
+		_, err := g.AddOptions(command.GetOptions())
+
+		if err != nil {
+			return err
+		}
+
+		_, err = g.AddOperands(command.GetOperands())
 
 		if err != nil {
 			return err
@@ -124,11 +132,14 @@ func (g *GetOpt) Process(args ...string) error {
 		return nil
 	}
 
-	addOperand := func(g *GetOpt, value string) error {
+	addOperand := func(value string) error {
 		operand := g.NextOperand()
 		if operand != nil {
-			operand.SetValue(value)
-		} else if (g.Get(SETTING_STRICT_OPTIONS) != "") {
+			_, err := operand.SetValue(value)
+			if err != nil {
+				return err
+			}
+		} else if (g.Get(SETTING_STRICT_OPERANDS) != "") {
 			return errors.New(fmt.Sprintf(Translate("no-more-operands"), value))
 		} else {
 			g.additionalOperands = append(g.additionalOperands, value)
@@ -141,7 +152,11 @@ func (g *GetOpt) Process(args ...string) error {
 	g.additionalOperands = make([]string,0)
 	g.operandsCount = 0
 
-	arguments.Process(g, setOption, setCommand, addOperand)
+	_, err := arguments.Process(g, setOption, setCommand, addOperand)
+
+	if err != nil {
+		return err
+	}
 
 	operand := g.NextOperand()
 
@@ -191,12 +206,15 @@ func (g *GetOpt) GetOptions() map[string][]string {
 	return result
 }
 
-func (g *GetOpt) AddCommands(commands []*Command) *GetOpt {
+func (g *GetOpt) AddCommands(commands []*Command) (*GetOpt, error) {
 	for _, command := range commands {
-		g.AddCommand(command)
+		_, err := g.AddCommand(command)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return g
+	return g, nil
 }
 
 func (g *GetOpt) AddCommand(command *Command) (*GetOpt, error) {

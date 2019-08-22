@@ -33,9 +33,13 @@ func (o *Operand) Required(required bool) *Operand {
 	return o
 }
 
-func (o *Operand) SetValue(value ...string) *Operand {
-	o.Argument.SetValue(value...)
-	return o
+func (o *Operand) SetValue(value ...string) (*Operand, error) {
+	_, err := o.Argument.SetValue(value...)
+	if err != nil {
+		return nil, err
+	}
+
+	return o, nil
 }
 
 func (o *Operand) GetValue() []string {
@@ -48,7 +52,7 @@ func (o *Operand) GetValue() []string {
 	return value
 }
 
-func (o *Operand) GetDescription() {
+func (o *Operand) GetDescription() string {
 	return o.description
 }
 

@@ -130,13 +130,40 @@ func (h *Help) renderUsage() string {
 		h.renderDescription()
 }
 
-func (h *Help) renderOperands() {
+func (h *Help) renderOperands() string {
 	data := make(map[string]string)
 	definitionWidth := 0
 	hasDescriptions := false
 
 	for _, operand := range h.getOpt.GetOperandObjects() {
 		definition := h.surround(operand.GetName(), h.texts["placeholder"])
-		if !operand.Is
+		if !operand.IsRequired() {
+			definition = h.surround(definition, h.texts["optional"])
+		}
+
+		if len(definition) > definitionWidth {
+			definitionWidth = len(definition)
+		}
+
+		if operand.GetDescription() {
+			hasDescriptions = true
+		}
+
+		data = append(data, operand.GetDescription())
+	}
+
+	if hasDescriptions {
+		return ""
+	}
+
+	return h.GetText("operands-title") + h.renderColumns(definitionWidth, data) + "\n"
+}
+
+func (h *Help) renderOptions() {
+	data := make(map[string]string)
+	definitionWidth := 0
+
+	for _, option := range h.getOpt.GetOptionObjects() {
+		definition := strings.Join(,h.texts["options-listing"])
 	}
 }

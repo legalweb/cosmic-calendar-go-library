@@ -13,24 +13,64 @@ func NewArguments(arguments []string) *Arguments {
 	return a
 }
 
-func (a *Arguments) Process(getopt *GetOpt, setOption setOptionFunc, setCommand setCommandFunc, addOperand addOperandFunc) {
+func (a *Arguments) Process(getopt *GetOpt, setOption setOptionFunc, setCommand setCommandFunc, addOperand addOperandFunc) (bool, error) {
 	for i := len(a.arguments) - 1; i >= 0; i -- {
 		arg := a.arguments[i]
 		a.arguments = a.arguments[0:i]
 		if a.isMeta(arg) {
 			for _, argument := range a.arguments {
-				addOperand(getopt, argument)
+				err := addOperand(argument)
+				if err != nil {
+					return false, err
+				}
 			}
 		}
 
 		if a.isValue(arg) {
 			operands := getopt.GetOperands()
+			command := getopt.GetCommand(arg)
+			if len(operands) == 0 && command != nil {
+				err := setCommand(command)
+				if err != nil {
+					return false, err
+				}
+			} else {
+				err := addOperand(arg)
+				if err != nil {
+					return false, err
+				}
+			}
 		}
-		dfds
-		dfdsf
-		sdfdsf sdf
-		sdf
+
+		if a.isLongOption(arg) {
+			err := setOption(a.longName(arg), func() string {
+				return a.Value(arg, "")
+			})
+
+			if err != nil {
+				return false, err
+			}
+			continue
+		}
+
+		for _, name := range a.shortNames(arg) {
+			requestedValue := false
+			err := setOption(a.longName(arg), func() string {
+				requestedValue = true
+				return a.Value(arg, string(name))
+			})
+
+			if err != nil {
+				return false, err
+			}
+
+			if requestedValue {
+				break;
+			}
+		}
 	}
+
+	return true, nil
 }
 
 func (a *Arguments) isOption(arg string) bool {
@@ -68,7 +108,7 @@ func (a *Arguments) shortNames(arg string) []rune {
 	return []rune(arg[1:])
 }
 
-func (a *Arguments) value(arg string, name string) string {
+func (a *Arguments) Value(arg string, name string) string {
 	var p int
 
 	if a.isLongOption(arg) {
