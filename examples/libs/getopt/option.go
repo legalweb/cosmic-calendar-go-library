@@ -3,6 +3,8 @@ package getopt
 import (
 	"errors"
 	"fmt"
+	"log"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -19,9 +21,9 @@ type Option struct {
 	value string
 }
 
-func NewOption(short rune, long *string, mode *string) (*Option, error) {
+func NewOption(short rune, long string, mode string) (*Option, error) {
 	o := new(Option)
-	if short == '\x00' && (long == nil || len(*long) == 0) {
+	if short == '\x00' && (long == "" || len(long) == 0) {
 		return nil, errors.New("The short and long name may not both be empty")
 	}
 
@@ -30,24 +32,28 @@ func NewOption(short rune, long *string, mode *string) (*Option, error) {
 		return nil, err
 	}
 
-	if long != nil {
-		_, err = o.SetLong(*long)
+	if long != "" {
+		_, err = o.SetLong(long)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if mode == nil {
+	if mode == "" {
 		_, err = o.SetMode(NO_ARGUMENT)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		_, err = o.SetMode(*mode)
+		_, err = o.SetMode(mode)
 		if err != nil {
 			return nil, err
 		}
 	}
+
+	o.argument = NewArgument(nil, nil, nil)
+	o.argument.Multiple(o.mode == MULTIPLE_ARGUMENT)
+	o.argument.SetOption(o)
 
 	return o, nil
 }
@@ -126,10 +132,10 @@ func (o *Option) Short() rune {
 
 func (o *Option) SetLong(long string) (*Option, error) {
 	if long != "" {
-		match, _ := regexp.MatchString("^[a-zA-Z0-9?!§$%#]$", string(long))
+		match, _ := regexp.MatchString("^[a-zA-Z0-9?!§$%#]{1,}$", string(long))
 
 		if !match {
-			return nil, errors.New(fmt.Sprintf("Long option must be null or one of [a-zA-Z0-9?!§$%#], found '%s'", string(long)))
+			return nil, errors.New(fmt.Sprintf("Long option must be null or one of [a-zA-Z0-9?!§$%%#], found '%s'", long))
 		} else {
 			o.long = long
 		}
@@ -149,7 +155,7 @@ func (o *Option) Long() string {
 }
 
 func (o *Option) SetMode(mode string) (*Option, error) {
-	if mode == NO_ARGUMENT || mode == OPTIONAL_ARGUMENT || mode == REQUIRED_ARGUMENT || mode == MULTIPLE_ARGUMENT {
+	if mode != NO_ARGUMENT && mode != OPTIONAL_ARGUMENT && mode != REQUIRED_ARGUMENT && mode != MULTIPLE_ARGUMENT {
 		return nil, errors.New(fmt.Sprintf("Option mode must be one of %s, %s, %s and %s", NO_ARGUMENT, OPTIONAL_ARGUMENT, REQUIRED_ARGUMENT, MULTIPLE_ARGUMENT))
 	}
 
@@ -223,4 +229,27 @@ func (o *Option) String() string {
 
 func (o *Option) Describe() string {
 	return fmt.Sprintf("%s '%s'", Translate("option"), o.GetName())
+}
+
+func FileIsReadable(args ...string) bool {
+	if len(args) == 0 {
+		return false
+	}
+
+	for _, filename := range args {
+		_, err := os.Stat(filename)
+		if err != nil {
+			log.Println(err)
+			return false
+		}
+
+		_, err = os.Open(filename)
+
+		if err != nil {
+			log.Println(err)
+			return false
+		}
+	}
+
+	return true
 }

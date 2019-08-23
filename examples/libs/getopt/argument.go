@@ -30,7 +30,11 @@ func NewArgument(defaultValue *string, callable *validationFunc, nameArg *string
 
 	if nameArg != nil {
 		a.name = *nameArg
+	} else {
+		a.name = "arg"
 	}
+
+	a.value = make([]string, 0)
 
 	return a
 }
@@ -42,9 +46,11 @@ func (a *Argument) SetDefaultValue(value string) *Argument {
 
 func (a *Argument) SetValidation(callable validationFunc, message *string) *Argument {
 	a.validation = callable
+
 	if message != nil {
 		a.validationMessage = *message
 	}
+
 	return a
 }
 
@@ -114,14 +120,11 @@ func (a *Argument) HasDefaultValue() bool {
 }
 
 func (a *Argument) GetDefaultValue() []string {
-	if a.IsMultiple() {
-		if a.HasDefaultValue() {
-			return []string{a.adefault}
-		}
-		return []string{}
+	if a.HasDefaultValue() {
+		return []string{a.adefault}
 	}
 
-	return []string{a.adefault}
+	return []string{}
 }
 
 func (a *Argument) GetName() string {
@@ -132,4 +135,6 @@ func (a *Argument) Describe() string {
 	if a.option != nil {
 		return a.option.Describe()
 	}
+
+	return fmt.Sprintf("%s '%s'", Translate(TRANSLATION_KEY), a.GetName())
 }

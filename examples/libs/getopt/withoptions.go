@@ -6,12 +6,12 @@ import (
 )
 
 type WithOptions struct {
-	options []Option
-	optionMapping map[string]Option
+	options []*Option
+	optionMapping map[string]*Option
 }
 
 func (w *WithOptions) AddOptionString(option string) (*WithOptions, error) {
-	op := new(OptionParser)
+	op := NewOptionParser(NO_ARGUMENT)
 	options, err := op.ParseString(option)
 
 	if err != nil {
@@ -22,17 +22,17 @@ func (w *WithOptions) AddOptionString(option string) (*WithOptions, error) {
 }
 
 func (w *WithOptions) AddOptionArray(s []string) (*WithOptions, error) {
-	op := new(OptionParser)
+	op := NewOptionParser(NO_ARGUMENT)
 	option, err := op.ParseArray(s)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return w.AddOption(*option)
+	return w.AddOption(option)
 }
 
-func (w *WithOptions) AddOptions(options []Option) (*WithOptions, error) {
+func (w *WithOptions) AddOptions(options []*Option) (*WithOptions, error) {
 	if len(options) > 0 {
 		for _, option := range options {
 			_, err := w.AddOption(option)
@@ -45,7 +45,7 @@ func (w *WithOptions) AddOptions(options []Option) (*WithOptions, error) {
 	return w, nil
 }
 
-func (w *WithOptions) AddOption(option Option) (*WithOptions, error) {
+func (w *WithOptions) AddOption(option *Option) (*WithOptions, error) {
 	if w.Conflicts(option) {
 		return nil, errors.New(fmt.Sprintf("%s's short and long name have to be unique", option))
 	}
@@ -65,7 +65,7 @@ func (w *WithOptions) AddOption(option Option) (*WithOptions, error) {
 	return w, nil
 }
 
-func (w *WithOptions) Conflicts(option Option) bool {
+func (w *WithOptions) Conflicts(option *Option) bool {
 	short := option.GetShort()
 	long := option.GetLong()
 
@@ -75,7 +75,7 @@ func (w *WithOptions) Conflicts(option Option) bool {
 	return (short != '\x00' && hasShortMap) || (long != "" && hasLongMap)
 }
 
-func (w *WithOptions) GetOptions() []Option {
+func (w *WithOptions) GetOptions() []*Option {
 	return w.options
 }
 
@@ -83,7 +83,7 @@ func (w *WithOptions) GetOption(name string) *Option {
 	option, hasOption := w.optionMapping[name]
 
 	if hasOption {
-		return &option
+		return option
 	}
 
 	return nil

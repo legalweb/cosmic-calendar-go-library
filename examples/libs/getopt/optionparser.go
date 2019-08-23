@@ -16,51 +16,51 @@ func NewOptionParser(mode string) *OptionParser {
 	return o
 }
 
-func (o *OptionParser) ParseString(s string) ([]Option, error) {
+func (o *OptionParser) ParseString(s string) ([]*Option, error) {
 	if len(s) == 0 {
 		return nil, errors.New("Option string must not be empty")
 	}
 
-	options := make([]Option, 0)
+	options := make([]*Option, 0)
 	eol := len(s) - 1
 	nextCanBeColon := false
 
 	for i := 0; i <= eol; i++ {
 		ch := rune(s[i])
-		match, _ := regexp.MatchString("/^[A-Za-z0-9]$", string(ch))
+		match, _ := regexp.MatchString("^[A-Za-z0-9]$", string(ch))
 		if !match {
 			colon := ""
 			if nextCanBeColon {
 				colon = " or ':'"
 			}
 
-			return nil, errors.New(fmt.Sprintf("Option string is not well formed: " + "expected a letter%s, found '%s' at position %d", colon, ch, i + 1))
+			return nil, errors.New(fmt.Sprintf("Option string is not well formed: " + "expected a letter%s, found '%s' at position %d", colon, string(ch), i + 1))
 		}
 		if i == eol || s[i + 1] != ':' {
 			argType := NO_ARGUMENT
-			option, err := NewOption(ch, nil, &argType)
+			option, err := NewOption(ch, "", argType)
 			if err != nil {
 				return nil, err
 			}
 
-			options = append(options, *option)
+			options = append(options, option)
 			nextCanBeColon = true
 		} else if (i < eol - 1 && s[i + 2] == ':') {
 			argType := OPTIONAL_ARGUMENT
-			option, err := NewOption(ch, nil, &argType)
+			option, err := NewOption(ch, "", argType)
 			if err != nil {
 				return nil, err
 			}
-			options = append(options, *option)
+			options = append(options, option)
 			i += 2
 			nextCanBeColon = false
 		} else {
 			argType := REQUIRED_ARGUMENT
-			option, err := NewOption(ch, nil, &argType)
+			option, err := NewOption(ch, "", argType)
 			if err != nil {
 				return nil, err
 			}
-			options = append(options, *option)
+			options = append(options, option)
 			i++
 			nextCanBeColon = true
 		}
@@ -79,7 +79,7 @@ func (o *OptionParser) ParseArray(p []string) (*Option, error) {
 		p = o.CompleteOptionArray(p)
 	}
 
-	option, err := NewOption(rune(p[0][0]), &p[1], &p[2])
+	option, err := NewOption(rune(p[0][0]), p[1], p[2])
 
 	if err != nil {
 		return nil, err

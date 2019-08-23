@@ -17,8 +17,13 @@ type Command struct {
 	handler handlerFunc
 }
 
-func NewCommand(name string, handler handlerFunc, options []Option) (*Command, error) {
+func NewCommand(name string, handler handlerFunc, options []*Option) (*Command, error) {
 	c := new(Command)
+
+	c.options = make([]*Option, 0)
+	c.optionMapping = make(map[string]*Option)
+	c.operands = make([]*Operand, 0)
+
 	_, err := c.SetName(name)
 
 	if err != nil {
@@ -28,7 +33,11 @@ func NewCommand(name string, handler handlerFunc, options []Option) (*Command, e
 	c.handler = handler
 
 	if len(options) > 0 {
-		c.AddOptions(options)
+		_, err = c.AddOptions(options)
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return c, nil
@@ -63,8 +72,8 @@ func (c *Command) Name() string {
 	return c.name
 }
 
-func (c *Command) GetHandler() *handlerFunc {
-	return &c.handler
+func (c *Command) GetHandler() handlerFunc {
+	return c.handler
 }
 
 func (c *Command) GetDescription() string {

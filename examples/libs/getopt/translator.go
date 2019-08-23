@@ -15,21 +15,27 @@ type Translator struct {
 }
 
 func NewTranslator(language string, asFallback ...bool) (*Translator, error) {
-	l := new(Translator)
+	t := new(Translator)
 
 	if language == "" {
 		language = "en"
 	}
 
-	if !l.SetLanguage(language) {
+	if !t.SetLanguage(language) {
 		return nil, errors.New(fmt.Sprintf("language %s is not available", language))
 	}
 
 	if fallbackTranslator == nil && (len(asFallback) == 0 || asFallback[0] == false) {
-		fallbackTranslator, _ = NewTranslator("en", true)
+		fb, err := NewTranslator("en", true)
+
+		if err != nil {
+			return nil, err
+		}
+
+		fallbackTranslator = fb
 	}
 
-	return l, nil
+	return t, nil
 }
 
 func (t *Translator) Translate(key string) string {

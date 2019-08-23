@@ -1,6 +1,8 @@
 package getopt
 
-import "strings"
+import (
+	"strings"
+)
 
 type Arguments struct {
 	arguments []string
@@ -14,9 +16,10 @@ func NewArguments(arguments []string) *Arguments {
 }
 
 func (a *Arguments) Process(getopt *GetOpt, setOption setOptionFunc, setCommand setCommandFunc, addOperand addOperandFunc) (bool, error) {
-	for i := len(a.arguments) - 1; i >= 0; i -- {
+	for i := len(a.arguments) - 1; i > 0; i -- {
 		arg := a.arguments[i]
 		a.arguments = a.arguments[0:i]
+
 		if a.isMeta(arg) {
 			for _, argument := range a.arguments {
 				err := addOperand(argument)

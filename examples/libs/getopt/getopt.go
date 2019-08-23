@@ -3,6 +3,7 @@ package getopt
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 )
@@ -36,15 +37,24 @@ type GetOpt struct {
 func NewGetOpt(options string, settings map[string]string) (*GetOpt, error) {
 	g := new(GetOpt)
 
+	g.options = make([]*Option, 0)
+	g.optionMapping = make(map[string]*Option)
+	g.operands = make([]*Operand, 0)
+
+	g.settings = make(map[string]string)
+	g.commands = make(map[string]*Command)
+	g.additionalOperands = make([]string, 0)
+	g.additionalOptions = make(map[string]Option)
+
 	g.settings[SETTING_STRICT_OPTIONS] = "1"
 	g.settings[SETTING_STRICT_OPERANDS] = ""
 
 	args := os.Args
 
 	if len(args) >= 1 {
-		SETTING_COMMAND_NAME = args[0]
+		g.Set(SETTING_COMMAND_NAME, args[0])
 	} else {
-		SETTING_COMMAND_NAME = "unknown"
+		g.Set(SETTING_COMMAND_NAME, "unknown")
 	}
 
 	for setting, value := range settings {
@@ -96,11 +106,14 @@ func (g *GetOpt) Process(args ...string) error {
 					value = "1"
 				}
 				opt, isset := g.additionalOptions[name]
-				v := opt.GetValue()
-				if isset && isInt(value) && len(v) > 0 && isInt(v[0]) {
-					x, _ := strconv.Atoi(value)
-					y, _ := strconv.Atoi(v[0])
-					value = strconv.Itoa(x + y)
+				if isset {
+					v := opt.GetValue()
+
+					if isInt(value) && len(v) > 0 && isInt(v[0]) {
+						x, _ := strconv.Atoi(value)
+						y, _ := strconv.Atoi(v[0])
+						value = strconv.Itoa(x + y)
+					}
 				}
 
 				newOption := Option{value: value}
@@ -109,6 +122,10 @@ func (g *GetOpt) Process(args ...string) error {
 			}
 
 			return errors.New(fmt.Sprintf(Translate("option-unknown"), name))
+		}
+
+		if option.GetMode() != NO_ARGUMENT {
+			option.SetValue(getValue())
 		}
 
 		return nil
@@ -250,7 +267,7 @@ func (g *GetOpt) HasCommands() bool {
 
 func (g *GetOpt) NextOperand() *Operand {
 
-	if g.operandsCount <= len(g.operands) {
+	if g.operandsCount < len(g.operands) {
 		operand := g.operands[g.operandsCount]
 		if !operand.IsMultiple() {
 			g.operandsCount++
@@ -352,7 +369,13 @@ func Translate(key string) string {
 
 func GetTranslator() *Translator {
 	if defaultTranslator == nil {
-		return new(Translator)
+		t, err := NewTranslator("")
+
+		if err != nil {
+			log.Println(err)
+		}
+
+		return t
 	}
 
 	return defaultTranslator
