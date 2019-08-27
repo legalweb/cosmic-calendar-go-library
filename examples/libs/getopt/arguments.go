@@ -16,9 +16,9 @@ func NewArguments(arguments []string) *Arguments {
 }
 
 func (a *Arguments) Process(getopt *GetOpt, setOption setOptionFunc, setCommand setCommandFunc, addOperand addOperandFunc) (bool, error) {
-	for i := len(a.arguments) - 1; i > 0; i -- {
-		arg := a.arguments[i]
-		a.arguments = a.arguments[0:i]
+	for len(a.arguments) > 0 {
+		arg := a.arguments[0]
+		a.arguments = a.arguments[1:]
 
 		if a.isMeta(arg) {
 			for _, argument := range a.arguments {
@@ -58,7 +58,7 @@ func (a *Arguments) Process(getopt *GetOpt, setOption setOptionFunc, setCommand 
 
 		for _, name := range a.shortNames(arg) {
 			requestedValue := false
-			err := setOption(a.longName(arg), func() string {
+			err := setOption(string(name), func() string {
 				requestedValue = true
 				return a.Value(arg, string(name))
 			})

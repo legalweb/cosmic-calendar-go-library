@@ -3,7 +3,6 @@ package getopt
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"strconv"
@@ -18,7 +17,6 @@ type Option struct {
 	mode string
 	description string
 	argument *Argument
-	value string
 }
 
 func NewOption(short rune, long string, mode string) (*Option, error) {
@@ -183,12 +181,19 @@ func (o *Option) SetValue(value ...string) (*Option, error) {
 		}
 
 		if o.argument.GetValue() != nil {
-			i, err := strconv.Atoi(o.argument.GetValue()[0])
-			if err != nil {
-				value = append(value, strconv.Itoa(i + 1))
+			if len(o.argument.GetValue()) > 0 {
+				i, err := strconv.Atoi(o.argument.GetValue()[0])
+				if err != nil {
+					value = append(value, strconv.Itoa(i + 1))
+					o.argument.SetValue(value...)
+				} else {
+					return nil, errors.New(fmt.Sprintf("Unable to convert string to number: %s", o.argument.GetValue()[0]))
+				}
 			} else {
-				return nil, errors.New(fmt.Sprintf("Unable to convert string to number: %s", o.argument.GetValue()[0]))
+				o.argument.SetValue("1")
 			}
+		} else {
+			o.argument.SetValue("1")
 		}
 	} else {
 		_, err := o.argument.SetValue(value...)
@@ -239,14 +244,12 @@ func FileIsReadable(args ...string) bool {
 	for _, filename := range args {
 		_, err := os.Stat(filename)
 		if err != nil {
-			log.Println(err)
 			return false
 		}
 
 		_, err = os.Open(filename)
 
 		if err != nil {
-			log.Println(err)
 			return false
 		}
 	}

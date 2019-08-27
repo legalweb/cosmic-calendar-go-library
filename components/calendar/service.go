@@ -128,8 +128,8 @@ func (s *CalendarService) GetTasks() {
 
 }
 
-func (s *CalendarService) GetOAuthURLs() {
-
+func (s *CalendarService) GetOAuthURLs() map[string]string {
+	return map[string]string{}
 }
 
 func (s *CalendarService) mustHaveUser() {

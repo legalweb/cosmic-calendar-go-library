@@ -61,9 +61,10 @@ func (a *Argument) SetName(name string) *Argument {
 
 func (a *Argument) GetValidationMessage(value ...string) string {
 	if len(a.validationMessage) > 0 {
+		fmt.Println("Fuck")
 		return fmt.Sprintf(a.validationMessage, a.Describe(), value)
 	} else {
-		return fmt.Sprintf("value-invalid", a.Describe(), value)
+		return fmt.Sprintf(Translate("value-invalid"), a.Describe(), value)
 	}
 }
 

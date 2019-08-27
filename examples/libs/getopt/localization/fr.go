@@ -12,7 +12,7 @@ var LangFR = map[string]string{
 	"no-more-operands": "Argument inattendu - %s",
 	"operand-missing": "L'argument %s est obligatoire",
 	"option-argument-missing": "L'option '%s' doit avoir une valeur",
-	"value-invalid": "La valeur de %s est invalide",
+	"value-invalid": "La valeur de %s est invalide: %s",
 	"option": "Option",
 	"operand": "Operand",
 	"argument": "Argument",

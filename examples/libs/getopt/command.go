@@ -6,6 +6,18 @@ import (
 	"strings"
 )
 
+type CommandInterface interface {
+	GetHandler() handlerFunc
+	GetName() string
+	GetOptions() []*Option
+	GetOperands() []*Operand
+	GetDescription() string
+	GetShortDescription() string
+	SetName(string) (*Command, error)
+	SetHandler(handlerFunc) *Command
+	SetDescription(string) *Command
+}
+
 type Command struct {
 	WithOptions
 	WithOperands
@@ -20,6 +32,10 @@ type Command struct {
 func NewCommand(name string, handler handlerFunc, options []*Option) (*Command, error) {
 	c := new(Command)
 
+	return c.Build(name, handler, options)
+}
+
+func (c *Command) Build(name string, handler handlerFunc, options []*Option) (*Command, error) {
 	c.options = make([]*Option, 0)
 	c.optionMapping = make(map[string]*Option)
 	c.operands = make([]*Operand, 0)

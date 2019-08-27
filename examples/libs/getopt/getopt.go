@@ -27,8 +27,8 @@ type GetOpt struct {
 	help HelpInterface
 	settings map[string]string
 	operandsCount int
-	commands map[string]*Command
-	command *Command
+	commands map[string]CommandInterface
+	command CommandInterface
 	additionalOperands []string
 	additionalOptions map[string]Option
 	translator Translator
@@ -42,7 +42,7 @@ func NewGetOpt(options string, settings map[string]string) (*GetOpt, error) {
 	g.operands = make([]*Operand, 0)
 
 	g.settings = make(map[string]string)
-	g.commands = make(map[string]*Command)
+	g.commands = make(map[string]CommandInterface)
 	g.additionalOperands = make([]string, 0)
 	g.additionalOptions = make(map[string]Option)
 
@@ -91,7 +91,7 @@ func (g *GetOpt) Process(args ...string) error {
 	var arguments *Arguments
 	if len(args) == 0 {
 		args = os.Args
-		arguments = NewArguments(args)
+		arguments = NewArguments(args[1:])
 	} else {
 		arguments = NewArguments(args)
 	}
@@ -116,7 +116,7 @@ func (g *GetOpt) Process(args ...string) error {
 					}
 				}
 
-				newOption := Option{value: value}
+				newOption := Option{argument:NewArgument(&value, nil, nil)}
 				g.additionalOptions[name] = newOption
 				return nil
 			}
@@ -125,13 +125,21 @@ func (g *GetOpt) Process(args ...string) error {
 		}
 
 		if option.GetMode() != NO_ARGUMENT {
-			option.SetValue(getValue())
+			_, err := option.SetValue(getValue())
+			if err != nil {
+				return err
+			}
+		} else {
+			_, err := option.SetValue()
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
 	}
 
-	setCommand := func(command *Command) error {
+	setCommand := func(command CommandInterface) error {
 		_, err := g.AddOptions(command.GetOptions())
 
 		if err != nil {
@@ -223,7 +231,7 @@ func (g *GetOpt) GetOptions() map[string][]string {
 	return result
 }
 
-func (g *GetOpt) AddCommands(commands []*Command) (*GetOpt, error) {
+func (g *GetOpt) AddCommands(commands []CommandInterface) (*GetOpt, error) {
 	for _, command := range commands {
 		_, err := g.AddCommand(command)
 		if err != nil {
@@ -234,7 +242,7 @@ func (g *GetOpt) AddCommands(commands []*Command) (*GetOpt, error) {
 	return g, nil
 }
 
-func (g *GetOpt) AddCommand(command *Command) (*GetOpt, error) {
+func (g *GetOpt) AddCommand(command CommandInterface) (*GetOpt, error) {
 	for _, option := range command.GetOptions() {
 		if g.Conflicts(option) {
 			return nil, errors.New(fmt.Sprintf("%s has conflicting options", command))
@@ -245,7 +253,7 @@ func (g *GetOpt) AddCommand(command *Command) (*GetOpt, error) {
 	return g, nil
 }
 
-func (g *GetOpt) GetCommand(name string) *Command {
+func (g *GetOpt) GetCommand(name string) CommandInterface {
 	if len(name) > 0 {
 		v, isset := g.commands[name]
 		if isset {
@@ -257,7 +265,7 @@ func (g *GetOpt) GetCommand(name string) *Command {
 	return g.command;
 }
 
-func (g *GetOpt) GetCommands() map[string]*Command {
+func (g *GetOpt) GetCommands() map[string]CommandInterface {
 	return g.commands;
 }
 

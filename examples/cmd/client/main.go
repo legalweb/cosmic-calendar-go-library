@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"lwebco.de/cosmic-calendar-go-library/examples/libs/commands"
 	"lwebco.de/cosmic-calendar-go-library/examples/libs/getopt"
 	"os"
 )
@@ -40,8 +41,9 @@ func main() {
 		o1, o2, o3, o4, o5, o6,
 	})
 
-	c1, err := getopt.NewCommand("test-setup", func(o *getopt.GetOpt) {
+	c1, err := getopt.NewCommand("test-setup", func(o *getopt.GetOpt) error {
 		fmt.Println("When you see this message the setup works." + "\n")
+		return nil
 	}, nil)
 
 	if err != nil {
@@ -58,6 +60,20 @@ func main() {
 		os.Exit(1)
 	}
 
+	c, err := commands.NewGetOAuthURLs()
+
+	if err != nil {
+		logrus.Errorln(err)
+		os.Exit(1)
+	}
+
+	_, err = opt.AddCommand(c)
+
+	if err != nil {
+		logrus.Errorln(err)
+		os.Exit(1)
+	}
+
 	err = opt.Process()
 
 	if err != nil {
@@ -66,20 +82,24 @@ func main() {
 	}
 
 	optValue := opt.GetOptionValue("version")
-	fmt.Println(optValue)
 	if optValue != nil && len(optValue) > 0 {
 		fmt.Println(fmt.Sprintf("%s: %s", NAME, VERSION))
 		os.Exit(0)
 	}
 
 	command := opt.GetCommand("")
-	if command != nil || opt.GetOption("help") != nil {
+	optHelp := opt.GetOptionValue("help")
+	if command == nil || (optHelp != nil && len(optHelp) > 0) {
 		fmt.Println(opt.GetHelpText(nil))
 		os.Exit(0)
 	}
 
 	handlerFunc := command.GetHandler()
-	handlerFunc(opt)
+	if handlerFunc != nil {
+		handlerFunc(opt)
+	} else {
+		logrus.Error("No handlerFunc found")
+	}
 
 	args := os.Args
 

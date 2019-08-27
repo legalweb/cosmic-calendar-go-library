@@ -12,6 +12,6 @@ var LangEN = map[string]string{
 	"no-more-operands": "No more operands expected - got %s",
 	"operand-missing": "Operand %s is required",
 	"option-argument-missing": "Option \"%s\" must have a value",
-	"value-invalid": "%s has an invalid value",
+	"value-invalid": "%s has an invalid value: %s",
 }
 
