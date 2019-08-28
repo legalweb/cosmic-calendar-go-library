@@ -201,6 +201,17 @@ func (g *GetOpt) GetOptionValue(name string) []string {
 	return nil
 }
 
+func (g *GetOpt) GetOptionString(name string) string {
+	option := g.GetOption(name)
+	if option != nil {
+		if len(option.GetValue()) > 0 {
+			return option.GetValue()[0]
+		}
+	}
+
+	return ""
+}
+
 func (g *GetOpt) GetOptions() map[string][]string {
 	result := map[string][]string{}
 

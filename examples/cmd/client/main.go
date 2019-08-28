@@ -96,7 +96,10 @@ func main() {
 
 	handlerFunc := command.GetHandler()
 	if handlerFunc != nil {
-		handlerFunc(opt)
+		err := handlerFunc(opt)
+		if err != nil {
+			logrus.Error(err)
+		}
 	} else {
 		logrus.Error("No handlerFunc found")
 	}

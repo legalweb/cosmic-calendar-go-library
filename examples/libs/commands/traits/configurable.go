@@ -39,9 +39,9 @@ func (c *Configurable) getConfigOptions(opt *getopt.GetOpt) (calendar.CalendarSe
 	verifyssl := false
 
 	if config == "" {
-		client = opt.GetOptionValue("client")[0]
-		secret = opt.GetOptionValue("secret")[0]
-		endpoint = opt.GetOptionValue("endpoint")[0]
+		client = opt.GetOptionString("client")
+		secret = opt.GetOptionString("secret")
+		endpoint = opt.GetOptionString("endpoint")
 
 		if client == "" || secret == "" || endpoint == "" {
 			return calConfig, errors.New("client, secret & endpoint must be set if not providing config file")
