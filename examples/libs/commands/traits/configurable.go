@@ -2,9 +2,9 @@ package traits
 
 import (
 	"errors"
+	"github.com/daforester/getopt-golang/getopt"
 	"github.com/pelletier/go-toml"
 	"lwebco.de/cosmic-calendar-go-library/components/calendar"
-	"lwebco.de/cosmic-calendar-go-library/examples/libs/getopt"
 )
 
 type Configurable struct {
@@ -37,6 +37,7 @@ func (c *Configurable) getConfigOptions(opt *getopt.GetOpt) (calendar.CalendarSe
 	secret := ""
 	endpoint := ""
 	verifyssl := false
+	debug := false
 
 	if config == "" {
 		client = opt.GetOptionString("client")
@@ -60,6 +61,7 @@ func (c *Configurable) getConfigOptions(opt *getopt.GetOpt) (calendar.CalendarSe
 		secret = t.Get("SECRET").(string)
 		endpoint = t.Get("ENDPOINT").(string)
 		verifyssl = t.Get("VERIFYSSL").(bool)
+		debug = t.Get("DEBUG_REQUEST").(bool)
 	}
 
 	calConfig = calendar.CalendarServiceConfig{
@@ -67,6 +69,7 @@ func (c *Configurable) getConfigOptions(opt *getopt.GetOpt) (calendar.CalendarSe
 		Secret: secret,
 		EndPoint: endpoint,
 		VerifySSL: verifyssl,
+		Debug: debug,
 	}
 
 	return calConfig, nil

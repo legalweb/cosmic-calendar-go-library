@@ -2,9 +2,9 @@ package commands
 
 import (
 	"fmt"
+	"github.com/daforester/getopt-golang/getopt"
 	"lwebco.de/cosmic-calendar-go-library/components/calendar"
 	"lwebco.de/cosmic-calendar-go-library/examples/libs/commands/traits"
-	"lwebco.de/cosmic-calendar-go-library/examples/libs/getopt"
 )
 
 type GetOAuthURLs struct {
@@ -15,7 +15,7 @@ type GetOAuthURLs struct {
 func NewGetOAuthURLs() (*GetOAuthURLs, error) {
 	c := new(GetOAuthURLs)
 
-	_, err := c.Command.Build("getoauthurls", c.Handle, nil)
+	_, err := c.Command.Build("getoauthurls", c.Handle)
 
 	return c, err
 }
@@ -28,11 +28,16 @@ func (c *GetOAuthURLs) Handle(opt *getopt.GetOpt) error {
 	}
 
 	cs := calendar.NewCalendarService(config, false)
-	r := cs.GetOAuthURLs()
+	r, err := cs.GetOAuthURLs()
+
+	if err != nil {
+		return err
+	}
 
 	if len(r) > 0 {
+		fmt.Println("URLS")
 		for k, v := range r {
-			fmt.Println(k + " " + v)
+			fmt.Println(k + ": " + v)
 		}
 	} else {
 		fmt.Println("No URLs retrieved.")
