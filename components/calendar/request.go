@@ -17,10 +17,24 @@ type CalendarRequester interface {
 	decodeResponse(string) (map[string]interface{}, error)
 }
 
-type HTTPCalendarRequester struct {}
+type HTTPCalendarRequester struct {
+	client httpClient
+}
 
-func NewHTTPCalendarRequester() *HTTPCalendarRequester {
-	return new(HTTPCalendarRequester)
+func NewHTTPCalendarRequester(c ...httpClient) *HTTPCalendarRequester {
+	r := new(HTTPCalendarRequester)
+
+	r.client = http.DefaultClient
+
+	if c != nil && len(c) > 0 {
+		r.client = c[0]
+	}
+
+	return r
+}
+
+func (r *HTTPCalendarRequester) SetClient(c httpClient) {
+	r.client = c
 }
 
 func (r *HTTPCalendarRequester) Request(s *CalendarService, url string, json ...string) (map[string]interface{}, error) {
@@ -78,7 +92,7 @@ func (r *HTTPCalendarRequester) Request(s *CalendarService, url string, json ...
 		fmt.Println(string(debug))
 	}
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := r.client.Do(req)
 
 	if err != nil {
 		return nil, err
