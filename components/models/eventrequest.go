@@ -13,9 +13,10 @@ type EventRequest struct {
 	Reminders []*EventReminder `json:"reminders"`
 }
 
-func NewEventRequest(summary string, start time.Time, end time.Time, reminders ...*EventReminder) *EventRequest {
+func NewEventRequest(summary string, description string, start time.Time, end time.Time, reminders ...*EventReminder) *EventRequest {
 	e := new(EventRequest)
 	e.Summary = summary
+	e.Description = description
 	e.Start = start
 	e.End = end
 	if end.IsZero() {

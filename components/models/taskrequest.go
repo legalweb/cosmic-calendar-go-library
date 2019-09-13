@@ -19,8 +19,8 @@ func NewTaskRequest(title string, due time.Time) *TaskRequest {
 }
 
 func (e *TaskRequest) MarshalJSON() ([]byte, error) {
-	summary, _ := json.Marshal(e.Title)
-	output := "{\"title\":" + string(summary)
+	title, _ := json.Marshal(e.Title)
+	output := "{\"title\":" + string(title)
 
 	due, _ := json.Marshal(e.Due)
 	output += ",\"due\":" + string(due)

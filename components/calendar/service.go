@@ -1,17 +1,11 @@
 package calendar
 
 import (
-	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/tasks/v1"
-	"io/ioutil"
 	"lwebco.de/cosmic-calendar-go-library/components/models"
-	"net/http"
-	"net/http/httputil"
 	"reflect"
 	"strconv"
 	"time"
@@ -20,6 +14,7 @@ import (
 type CalendarService struct {
 	config CalendarServiceConfig
 	user   string
+	requester CalendarRequester
 }
 
 var (
@@ -41,6 +36,14 @@ func NewCalendarService(config CalendarServiceConfig, opt ...interface{}) *Calen
 		case string:
 			user = option.(string)
 		}
+		_, isRequester := interface{}(option).(CalendarRequester)
+		if isRequester {
+			m.requester = option.(CalendarRequester)
+		}
+	}
+
+	if m.requester == nil {
+		m.requester = NewHTTPCalendarRequester()
 	}
 
 	if defaultCalendarService == nil || (isDefault == true) {
@@ -73,7 +76,7 @@ func Default(name ...string) (*CalendarService, error) {
 	}
 
 	if defaultCalendarService == nil {
-		return defaultCalendarService, errors.New("MySQL Database not configured")
+		return defaultCalendarService, errors.New("Calendar Service not configured")
 	}
 
 	return defaultCalendarService, nil
@@ -88,9 +91,9 @@ func (s *CalendarService) SetUser(user string) {
 }
 
 func (s *CalendarService) GetClientToken() (*ClientToken, error) {
-	url := "/token/";
+	url := "/token";
 
-	r, err := s.request(url)
+	r, err := s.requester.Request(s, url)
 
 	if err != nil {
 		return nil, err
@@ -120,7 +123,7 @@ func (s *CalendarService) GetClientToken() (*ClientToken, error) {
 func (s *CalendarService) GetCalendlyLink() (string, error) {
 	url := "/calendly/link";
 
-	r, err := s.request(url)
+	r, err := s.requester.Request(s, url)
 
 	if err != nil {
 		return "", err
@@ -144,7 +147,7 @@ func (s *CalendarService) SetCalendlyLink(url string) (string, error) {
 
 	url = "/calendly/link";
 
-	r, err := s.request(url, string(data))
+	r, err := s.requester.Request(s, url, string(data))
 
 	if err != nil {
 		return "", err
@@ -157,8 +160,8 @@ func (s *CalendarService) SetCalendlyLink(url string) (string, error) {
 	return r["Url"].(string), nil
 }
 
-func (s *CalendarService) AddEvent(summary string, start time.Time, end time.Time, reminders ...*models.EventReminder) (*calendar.Event, error) {
-	eventRequest := models.NewEventRequest(summary, start, end, reminders...)
+func (s *CalendarService) AddEvent(summary string, description string, start time.Time, end time.Time, reminders ...*models.EventReminder) (*calendar.Event, error) {
+	eventRequest := models.NewEventRequest(summary, description, start, end, reminders...)
 
 	data, err := json.Marshal(eventRequest)
 
@@ -168,7 +171,7 @@ func (s *CalendarService) AddEvent(summary string, start time.Time, end time.Tim
 
 	url := "/calendar/events";
 
-	r, err := s.request(url, string(data))
+	r, err := s.requester.Request(s, url, string(data))
 
 	if err != nil {
 		return nil, err
@@ -206,7 +209,7 @@ func (s *CalendarService) AddTask(title string, due time.Time) (*tasks.Task, err
 
 	url := "/calendar/tasks";
 
-	r, err := s.request(url, string(data))
+	r, err := s.requester.Request(s, url, string(data))
 
 	if err != nil {
 		return nil, err
@@ -246,7 +249,7 @@ func (s *CalendarService) GetEvents(days ...int) ([]*calendar.Event, error) {
 		url += "?days" + strconv.Itoa(noDays)
 	}
 
-	r, err := s.request(url)
+	r, err := s.requester.Request(s, url)
 
 	if err != nil {
 		return nil, err
@@ -282,7 +285,7 @@ func (s *CalendarService) GetEvents(days ...int) ([]*calendar.Event, error) {
 func (s *CalendarService) GetTasks() ([]*tasks.Task, error) {
 	url := "/calendar/tasks";
 
-	r, err := s.request(url)
+	r, err := s.requester.Request(s, url)
 
 	if err != nil {
 		return nil, err
@@ -316,7 +319,7 @@ func (s *CalendarService) GetTasks() ([]*tasks.Task, error) {
 }
 
 func (s *CalendarService) GetOAuthURLs() (map[string]string, error) {
-	r, err := s.request("/login/oauth/urls")
+	r, err := s.requester.Request(s, "/login/oauth/urls")
 
 	if err != nil {
 		return nil, err
@@ -337,115 +340,4 @@ func (s *CalendarService) GetOAuthURLs() (map[string]string, error) {
 	}
 
 	return urls, nil
-}
-
-func (s *CalendarService) decodeResponse(j string) (map[string]interface{}, error) {
-
-	type response struct {
-		ErrorMessage string
-		Response map[string]interface{}
-		ResponseCode int
-	}
-
-	x := new(response)
-	err := json.Unmarshal([]byte(j), x)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if x.ResponseCode != 200 {
-		return nil, errors.New(fmt.Sprintf("API Request failed: %d", x.ResponseCode))
-	}
-
-	return x.Response, err
-}
-
-func (s *CalendarService) request(url string, json ...string) (map[string]interface{}, error) {
-	var req *http.Request
-	var err error
-	jsonString := ""
-
-	if len(json) > 0 {
-		for _, str := range json {
-			jsonString += str
-		}
-	}
-
-	buf := bytes.NewBuffer([]byte(jsonString))
-
-	if buf.Len() > 0 {
-		req, err = http.NewRequest("POST", s.config.EndPoint+url, buf)
-
-		if err != nil {
-			return nil, err
-		}
-
-		req.Header["Content-Type"] = []string{"application/json"}
-	} else {
-		req, err = http.NewRequest("GET", s.config.EndPoint+url, nil)
-
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	req.SetBasicAuth(s.config.Client, s.config.Secret)
-
-	if len(s.user) > 0 {
-		req.Header["X-Auth-User"] = []string{s.user}
-	}
-
-	if !s.config.VerifySSL {
-		tr := http.DefaultTransport.(*http.Transport)
-
-		if tr.TLSClientConfig == nil {
-			tlsConf := new(tls.Config)
-			tlsConf.InsecureSkipVerify = true
-			tr.TLSClientConfig = tlsConf
-		} else {
-			tr.TLSClientConfig.InsecureSkipVerify = true
-		}
-	}
-
-	if s.config.Debug {
-		debug, err := httputil.DumpRequest(req, true)
-		if err != nil {
-			return nil, err
-		}
-		fmt.Println(string(debug))
-	}
-
-	res, err := http.DefaultClient.Do(req)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer res.Body.Close()
-
-	output, err := ioutil.ReadAll(res.Body)
-
-	if err != nil {
-		return nil, err
-	}
-
-	switch res.StatusCode {
-		case 503:
-			return nil, errors.New("API Service Unavailable")
-		case 500:
-			if s.config.Debug {
-				fmt.Println("API Returned Error:")
-				fmt.Println(string(output))
-			}
-			return nil, errors.New("API Returned Error")
-		case 403:
-			return nil, errors.New("Access Forbidden")
-		case 400:
-			return nil, errors.New("Bad API request")
-		case 200:
-			return s.decodeResponse(string(output))
-	}
-
-	return nil, errors.New("Unhandled API response: " + strconv.Itoa(res.StatusCode))
 }

@@ -21,12 +21,13 @@ func NewAddEvent() (*AddEvent, error) {
 
 	o1, _ := getopt.NewOption('u', "user", getopt.REQUIRED_ARGUMENT, "Specify user to act on behalf of")
 	o2, _ := getopt.NewOption('t', "title", getopt.REQUIRED_ARGUMENT, "Specify title of event")
-	o3, _ := getopt.NewOption('\x00', "start", getopt.REQUIRED_ARGUMENT, "Specify start date time of event")
-	o4, _ := getopt.NewOption('\x00', "end", getopt.OPTIONAL_ARGUMENT, "Specify end date time of event")
-	o5, _ := getopt.NewOption('\x00', "email-reminder", getopt.OPTIONAL_ARGUMENT, "Minutes before event to send email reminder")
-	o6, _ := getopt.NewOption('\x00', "popup-reminder", getopt.OPTIONAL_ARGUMENT, "Minutes before event to popup reminder")
+	o3, _ := getopt.NewOption('d', "details", getopt.REQUIRED_ARGUMENT, "Specify details of event")
+	o4, _ := getopt.NewOption('\x00', "start", getopt.REQUIRED_ARGUMENT, "Specify start date time of event")
+	o5, _ := getopt.NewOption('\x00', "end", getopt.OPTIONAL_ARGUMENT, "Specify end date time of event")
+	o6, _ := getopt.NewOption('\x00', "email-reminder", getopt.OPTIONAL_ARGUMENT, "Minutes before event to send email reminder")
+	o7, _ := getopt.NewOption('\x00', "popup-reminder", getopt.OPTIONAL_ARGUMENT, "Minutes before event to popup reminder")
 
-	_, err := a.Command.Build("addevent", a.Handle, o1, o2, o3, o4, o5, o6)
+	_, err := a.Command.Build("addevent", a.Handle, o1, o2, o3, o4, o5, o6, o7)
 
 	return a, err
 }
@@ -47,6 +48,7 @@ func (a *AddEvent) Handle(opt *getopt.GetOpt) error {
 	cs := calendar.NewCalendarService(config, false, user)
 
 	summary := opt.GetOptionString("title")
+	description := opt.GetOptionString("details")
 	start, err := time.Parse("2006-01-02T15:04:05Z", opt.GetOptionString("start"))
 	var end time.Time
 
@@ -76,7 +78,7 @@ func (a *AddEvent) Handle(opt *getopt.GetOpt) error {
 		}
 	}
 
-	r, err := cs.AddEvent(summary, start, end, reminders...)
+	r, err := cs.AddEvent(summary, description, start, end, reminders...)
 
 	if err != nil {
 		return err
