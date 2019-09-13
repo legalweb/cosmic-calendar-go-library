@@ -246,7 +246,7 @@ func (s *CalendarService) GetEvents(days ...int) ([]*calendar.Event, error) {
 	}
 
 	if noDays > 0 {
-		url += "?days" + strconv.Itoa(noDays)
+		url += "?days=" + strconv.Itoa(noDays)
 	}
 
 	r, err := s.requester.Request(s, url)
