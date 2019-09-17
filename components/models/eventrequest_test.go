@@ -57,3 +57,19 @@ func TestNewEventRequest(t *testing.T) {
 		t.Errorf("got %q wanted %q", x.End, end)
 	}
 }
+
+func TestCanMarshalEventRequest(t *testing.T) {
+	summary := "Summary"
+	description := "Description"
+	start, _ := time.Parse(time.RFC3339, "2019-09-11T15:57:34Z")
+	end, _ := time.Parse(time.RFC3339, "2019-10-11T15:57:34Z")
+
+	reminder := NewEventReminder("popup", 15)
+	x := NewEventRequest(summary, description, start, end, reminder)
+
+	_, err := json.Marshal(x)
+
+	if err != nil {
+		t.Error(err)
+	}
+}

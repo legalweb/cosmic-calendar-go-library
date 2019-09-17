@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 )
@@ -15,5 +16,14 @@ func TestNewEventReminder(t *testing.T) {
 	}
 	if x.Minutes != 5 {
 		t.Errorf("got %q wanted %q", x.Minutes, 5)
+	}
+}
+
+func TestCanMarshalEventReminder(t *testing.T) {
+	r := NewEventReminder("GET", 5)
+	_, err := json.Marshal(r)
+
+	if err != nil {
+		t.Error(err)
 	}
 }

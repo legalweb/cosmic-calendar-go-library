@@ -22,10 +22,7 @@ func NewClientToken() *ClientToken {
 
 func (c *ClientToken) UnmarshalJSON(data []byte) error {
 	var pieces map[string]interface{}
-	err := json.Unmarshal(data, &pieces)
-	if err != nil {
-		return err
-	}
+	_ = json.Unmarshal(data, &pieces)
 
 	for k, v := range pieces {
 		switch k {

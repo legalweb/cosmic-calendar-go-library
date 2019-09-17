@@ -6,11 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"strconv"
 )
+
+type dumpRequestFunc func(*http.Request, bool) ([]uint8, error)
+type readAllFunc func(io.Reader) ([]uint8, error)
 
 type CalendarRequester interface {
 	Request(*CalendarService, string, ...string) (map[string]interface{}, error)
@@ -19,22 +23,44 @@ type CalendarRequester interface {
 
 type HTTPCalendarRequester struct {
 	client httpClient
+	dumpRequest dumpRequestFunc
+	readAll readAllFunc
 }
 
-func NewHTTPCalendarRequester(c ...httpClient) *HTTPCalendarRequester {
+func NewHTTPCalendarRequester(o ...interface{}) *HTTPCalendarRequester {
 	r := new(HTTPCalendarRequester)
 
 	r.client = http.DefaultClient
+	r.dumpRequest = httputil.DumpRequest
+	r.readAll = ioutil.ReadAll
 
-	if c != nil && len(c) > 0 {
-		r.client = c[0]
+	if o != nil && len(o) > 0 {
+		for _, obj := range o {
+
+			switch obj.(type) {
+			case httpClient:
+				r.setClient(obj.(httpClient))
+			case dumpRequestFunc:
+				r.setDumpRequestFunc(obj.(dumpRequestFunc))
+			case readAllFunc:
+				r.setReadAllFunc(obj.(readAllFunc))
+			}
+		}
 	}
 
 	return r
 }
 
-func (r *HTTPCalendarRequester) SetClient(c httpClient) {
+func (r *HTTPCalendarRequester) setClient(c httpClient) {
 	r.client = c
+}
+
+func (r *HTTPCalendarRequester) setDumpRequestFunc(dumpRequest dumpRequestFunc) {
+	r.dumpRequest = dumpRequest
+}
+
+func (r *HTTPCalendarRequester) setReadAllFunc(realAll readAllFunc) {
+	r.readAll = realAll
 }
 
 func (r *HTTPCalendarRequester) Request(s *CalendarService, url string, json ...string) (map[string]interface{}, error) {
@@ -85,7 +111,7 @@ func (r *HTTPCalendarRequester) Request(s *CalendarService, url string, json ...
 	}
 
 	if s.config.Debug {
-		debug, err := httputil.DumpRequest(req, true)
+		debug, err := r.dumpRequest(req, true)
 		if err != nil {
 			return nil, err
 		}
@@ -100,7 +126,7 @@ func (r *HTTPCalendarRequester) Request(s *CalendarService, url string, json ...
 
 	defer res.Body.Close()
 
-	output, err := ioutil.ReadAll(res.Body)
+	output, err := r.readAll(res.Body)
 
 	if err != nil {
 		return nil, err

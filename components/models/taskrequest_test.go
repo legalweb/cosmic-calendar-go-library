@@ -36,3 +36,16 @@ func TestNewTaskRequest(t *testing.T) {
 		t.Errorf("got %q wanted %q", string(jStr), jsonOutput)
 	}
 }
+
+func TestCanMarshalTaskRequest(t *testing.T) {
+	title := "Task Title"
+	due, _ := time.Parse(time.RFC3339, "2019-09-11T16:10:00Z")
+
+	x := NewTaskRequest(title, due)
+
+	_, err := json.Marshal(x)
+
+	if err != nil {
+		t.Error(err)
+	}
+}

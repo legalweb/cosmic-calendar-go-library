@@ -72,4 +72,10 @@ func TestClientToken(t *testing.T) {
 	if err == nil {
 		t.Error("Error expected for value of Vendor")
 	}
+
+	jsonStr = "{\"expires\":\"123x4\",\"token\":\"Token String\",\"vendor\":\"Vendor Name\"}"
+	err = json.Unmarshal([]byte(jsonStr), x)
+	if err == nil {
+		t.Error("Error expected for value of expires")
+	}
 }

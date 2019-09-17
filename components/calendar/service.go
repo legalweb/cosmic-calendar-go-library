@@ -103,15 +103,8 @@ func (s *CalendarService) GetClientToken() (*ClientToken, error) {
 		return nil, errors.New("Token not found in JSON response")
 	}
 
-	jStr, err := json.Marshal(r["Token"])
-
-	if err != nil {
-		return nil, err
-	}
-
 	clientToken := NewClientToken()
-
-	err = json.Unmarshal([]byte(jStr), clientToken)
+	err = s.remarshal(r["Token"], clientToken)
 
 	if err != nil {
 		return nil, err
@@ -139,11 +132,7 @@ func (s *CalendarService) GetCalendlyLink() (string, error) {
 func (s *CalendarService) SetCalendlyLink(url string) (string, error) {
 	setRequest := models.NewSetCalendlyLinkRequest(url)
 
-	data, err := json.Marshal(setRequest)
-
-	if err != nil {
-		return "", err
-	}
+	data, _ := json.Marshal(setRequest)
 
 	url = "/calendly/link";
 
@@ -163,11 +152,7 @@ func (s *CalendarService) SetCalendlyLink(url string) (string, error) {
 func (s *CalendarService) AddEvent(summary string, description string, start time.Time, end time.Time, reminders ...*models.EventReminder) (*calendar.Event, error) {
 	eventRequest := models.NewEventRequest(summary, description, start, end, reminders...)
 
-	data, err := json.Marshal(eventRequest)
-
-	if err != nil {
-		return nil, err
-	}
+	data, _ := json.Marshal(eventRequest)
 
 	url := "/calendar/events";
 
@@ -181,15 +166,8 @@ func (s *CalendarService) AddEvent(summary string, description string, start tim
 		return nil, errors.New("Event not created")
 	}
 
-	jStr, err := json.Marshal(r["Event"])
-
-	if err != nil {
-		return nil, err
-	}
-
 	event := new(calendar.Event)
-
-	err = json.Unmarshal([]byte(jStr), event)
+	err = s.remarshal(r["Event"], event)
 
 	if err != nil {
 		return nil, err
@@ -201,11 +179,7 @@ func (s *CalendarService) AddEvent(summary string, description string, start tim
 func (s *CalendarService) AddTask(title string, due time.Time) (*tasks.Task, error) {
 	taskRequest := models.NewTaskRequest(title, due)
 
-	data, err := json.Marshal(taskRequest)
-
-	if err != nil {
-		return nil, err
-	}
+	data, _ := json.Marshal(taskRequest)
 
 	url := "/calendar/tasks";
 
@@ -219,15 +193,8 @@ func (s *CalendarService) AddTask(title string, due time.Time) (*tasks.Task, err
 		return nil, errors.New("Task not created")
 	}
 
-	jStr, err := json.Marshal(r["Task"])
-
-	if err != nil {
-		return nil, err
-	}
-
 	task := new(tasks.Task)
-
-	err = json.Unmarshal([]byte(jStr), task)
+	err = s.remarshal(r["Task"], task)
 
 	if err != nil {
 		return nil, err
@@ -265,15 +232,8 @@ func (s *CalendarService) GetEvents(days ...int) ([]*calendar.Event, error) {
 		return nil, errors.New("Event items not found in JSON response")
 	}
 
-	jStr, err := json.Marshal(events["items"])
-
-	if err != nil {
-		return nil, err
-	}
-
 	var calEvents []*calendar.Event
-
-	err = json.Unmarshal([]byte(jStr), &calEvents)
+	err = s.remarshal(events["items"], &calEvents)
 
 	if err != nil {
 		return nil, err
@@ -301,15 +261,8 @@ func (s *CalendarService) GetTasks() ([]*tasks.Task, error) {
 		return nil, errors.New("Task items not found in JSON response")
 	}
 
-	jStr, err := json.Marshal(events["items"])
-
-	if err != nil {
-		return nil, err
-	}
-
 	var calTasks []*tasks.Task
-
-	err = json.Unmarshal([]byte(jStr), &calTasks)
+	err = s.remarshal(events["items"], &calTasks)
 
 	if err != nil {
 		return nil, err
@@ -340,4 +293,20 @@ func (s *CalendarService) GetOAuthURLs() (map[string]string, error) {
 	}
 
 	return urls, nil
+}
+
+func (s *CalendarService) remarshal(input interface{}, output interface{}) error {
+	jStr, err := json.Marshal(input)
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = json.Unmarshal(jStr, output)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
