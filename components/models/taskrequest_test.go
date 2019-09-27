@@ -32,7 +32,7 @@ func TestNewTaskRequest(t *testing.T) {
 		t.Error(err)
 	}
 
-	if string(jStr) != jsonOutput{
+	if string(jStr) != jsonOutput {
 		t.Errorf("got %q wanted %q", string(jStr), jsonOutput)
 	}
 }

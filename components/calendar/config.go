@@ -6,5 +6,5 @@ type CalendarServiceConfig struct {
 	Secret    string
 	EndPoint  string
 	VerifySSL bool
-	Debug bool
+	Debug     bool
 }

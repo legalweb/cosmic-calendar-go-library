@@ -11,12 +11,12 @@ func TestRequest(t *testing.T) {
 	config := testConfig()
 	config.Debug = true
 
-	x := NewCalendarService(config)
+	NewCalendarService(config)
 
 	client = &mockHttpClient{}
 	requester = NewHTTPCalendarRequester(client)
 
-	x = NewCalendarService(config, "1", true, requester)
+	x := NewCalendarService(config, "1", true, requester)
 
 	client.SetResponse(503, "")
 	_, err := requester.Request(x, "/")

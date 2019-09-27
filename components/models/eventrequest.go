@@ -6,11 +6,11 @@ import (
 )
 
 type EventRequest struct {
-	Summary string `json:"summary"`
-	Description string `json:"description"`
-	Start time.Time `json:"start"`
-	End time.Time `json:"end"`
-	Reminders []*EventReminder `json:"reminders"`
+	Summary     string           `json:"summary"`
+	Description string           `json:"description"`
+	Start       time.Time        `json:"start"`
+	End         time.Time        `json:"end"`
+	Reminders   []*EventReminder `json:"reminders"`
 }
 
 func NewEventRequest(summary string, description string, start time.Time, end time.Time, reminders ...*EventReminder) *EventRequest {

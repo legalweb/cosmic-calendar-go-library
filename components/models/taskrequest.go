@@ -6,8 +6,8 @@ import (
 )
 
 type TaskRequest struct {
-	Title string `json:"title"`
-	Due time.Time `json:"due"`
+	Title string    `json:"title"`
+	Due   time.Time `json:"due"`
 }
 
 func NewTaskRequest(title string, due time.Time) *TaskRequest {

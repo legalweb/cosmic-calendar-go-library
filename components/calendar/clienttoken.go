@@ -2,7 +2,6 @@ package calendar
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -10,8 +9,8 @@ import (
 
 type ClientToken struct {
 	Expires time.Time
-	Token string
-	Vendor string
+	Token   string
+	Vendor  string
 }
 
 func NewClientToken() *ClientToken {
@@ -26,14 +25,15 @@ func (c *ClientToken) UnmarshalJSON(data []byte) error {
 
 	for k, v := range pieces {
 		switch k {
-		case "expires": fallthrough
+		case "expires":
+			fallthrough
 		case "Expires":
 			set := false
-			switch v.(type) {
+			switch v := v.(type) {
 			case string:
-				t, err := time.Parse(time.RFC3339, v.(string))
+				t, err := time.Parse(time.RFC3339, v)
 				if err != nil {
-					i, err := strconv.ParseInt(v.(string), 10, 64)
+					i, err := strconv.ParseInt(v, 10, 64)
 					if err != nil {
 						return err
 					}
@@ -42,33 +42,35 @@ func (c *ClientToken) UnmarshalJSON(data []byte) error {
 				c.Expires = t
 				set = true
 			case float64:
-				c.Expires = time.Unix(int64(v.(float64)), 0)
+				c.Expires = time.Unix(int64(v), 0)
 				set = true
 			}
 			if !set {
-				return errors.New(fmt.Sprintf("Unhandled type for Expires: %T", v))
+				return fmt.Errorf("Unhandled type for Expires: %T", v)
 			}
-		case "token": fallthrough
+		case "token":
+			fallthrough
 		case "Token":
 			set := false
-			switch v.(type) {
+			switch v := v.(type) {
 			case string:
-				c.Token = v.(string)
+				c.Token = v
 				set = true
 			}
 			if !set {
-				return errors.New(fmt.Sprintf("Unhandled type for Token: %T", v))
+				return fmt.Errorf("Unhandled type for Token: %T", v)
 			}
-		case "vendor": fallthrough
+		case "vendor":
+			fallthrough
 		case "Vendor":
 			set := false
-			switch v.(type) {
+			switch v := v.(type) {
 			case string:
-				c.Vendor = v.(string)
+				c.Vendor = v
 				set = true
 			}
 			if !set {
-				return errors.New(fmt.Sprintf("Unhandled type for Vendor: %T", v))
+				return fmt.Errorf("Unhandled type for Vendor: %T", v)
 			}
 		}
 	}

@@ -33,7 +33,7 @@ func TestMockHttpClient_Do(t *testing.T) {
 
 	client.SetResponse(failcode, body)
 
-	res, err = client.Do(req)
+	_, err = client.Do(req)
 	if err == nil {
 		t.Error("Do should return mocked error for code 501")
 	}

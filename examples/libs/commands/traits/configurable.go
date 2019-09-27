@@ -8,7 +8,6 @@ import (
 )
 
 type Configurable struct {
-
 }
 
 func (c *Configurable) GetCalendarConfig(opt *getopt.GetOpt) (calendar.CalendarServiceConfig, error) {
@@ -65,11 +64,11 @@ func (c *Configurable) getConfigOptions(opt *getopt.GetOpt) (calendar.CalendarSe
 	}
 
 	calConfig = calendar.CalendarServiceConfig{
-		Client: client,
-		Secret: secret,
-		EndPoint: endpoint,
+		Client:    client,
+		Secret:    secret,
+		EndPoint:  endpoint,
 		VerifySSL: verifyssl,
-		Debug: debug,
+		Debug:     debug,
 	}
 
 	return calConfig, nil

@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/legalweb/cosmic-calendar-go-library.svg?branch=master)](https://travis-ci.org/legalweb/cosmic-calendar-go-library)
 [![Coverage Status](https://coveralls.io/repos/github/legalweb/cosmic-calendar-go-library/badge.svg?branch=master)](https://coveralls.io/github/legalweb/cosmic-calendar-go-library?branch=master)
-
+[![GolangCI](https://golangci.com/badges/github.com/legalweb/cosmic-calendar-go-library.svg)](https://golangci.com/r/github.com/legalweb/cosmic-calendar-go-library)
 
 Cosmic-Calendar-Client is a go library for interfacing with the Cosmic brokering platform calendar API.
 

@@ -22,9 +22,9 @@ type CalendarRequester interface {
 }
 
 type HTTPCalendarRequester struct {
-	client httpClient
+	client      httpClient
 	dumpRequest dumpRequestFunc
-	readAll readAllFunc
+	readAll     readAllFunc
 }
 
 func NewHTTPCalendarRequester(o ...interface{}) *HTTPCalendarRequester {
@@ -34,16 +34,16 @@ func NewHTTPCalendarRequester(o ...interface{}) *HTTPCalendarRequester {
 	r.dumpRequest = httputil.DumpRequest
 	r.readAll = ioutil.ReadAll
 
-	if o != nil && len(o) > 0 {
+	if len(o) > 0 {
 		for _, obj := range o {
 
-			switch obj.(type) {
+			switch obj := obj.(type) {
 			case httpClient:
-				r.setClient(obj.(httpClient))
+				r.setClient(obj)
 			case dumpRequestFunc:
-				r.setDumpRequestFunc(obj.(dumpRequestFunc))
+				r.setDumpRequestFunc(obj)
 			case readAllFunc:
-				r.setReadAllFunc(obj.(readAllFunc))
+				r.setReadAllFunc(obj)
 			}
 		}
 	}
@@ -156,7 +156,7 @@ func (r *HTTPCalendarRequester) decodeResponse(j string) (map[string]interface{}
 
 	type response struct {
 		ErrorMessage string
-		Response map[string]interface{}
+		Response     map[string]interface{}
 		ResponseCode int
 	}
 
@@ -168,7 +168,7 @@ func (r *HTTPCalendarRequester) decodeResponse(j string) (map[string]interface{}
 	}
 
 	if x.ResponseCode != 200 {
-		return nil, errors.New(fmt.Sprintf("API Request failed: %d", x.ResponseCode))
+		return nil, fmt.Errorf("API Request failed: %d", x.ResponseCode)
 	}
 
 	return x.Response, err

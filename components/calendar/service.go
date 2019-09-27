@@ -12,14 +12,14 @@ import (
 )
 
 type CalendarService struct {
-	config CalendarServiceConfig
-	user   string
+	config    CalendarServiceConfig
+	user      string
 	requester CalendarRequester
 }
 
 var (
 	defaultCalendarService *CalendarService
-	instances    map[string]*CalendarService
+	instances              map[string]*CalendarService
 )
 
 func NewCalendarService(config CalendarServiceConfig, opt ...interface{}) *CalendarService {
@@ -30,11 +30,11 @@ func NewCalendarService(config CalendarServiceConfig, opt ...interface{}) *Calen
 	user := ""
 
 	for _, option := range opt {
-		switch option.(type) {
+		switch option := option.(type) {
 		case bool:
-			isDefault = option.(bool)
+			isDefault = option
 		case string:
-			user = option.(string)
+			user = option
 		}
 		_, isRequester := interface{}(option).(CalendarRequester)
 		if isRequester {
@@ -46,7 +46,7 @@ func NewCalendarService(config CalendarServiceConfig, opt ...interface{}) *Calen
 		m.requester = NewHTTPCalendarRequester()
 	}
 
-	if defaultCalendarService == nil || (isDefault == true) {
+	if defaultCalendarService == nil || isDefault {
 		defaultCalendarService = m
 	}
 
@@ -91,7 +91,7 @@ func (s *CalendarService) SetUser(user string) {
 }
 
 func (s *CalendarService) GetClientToken() (*ClientToken, error) {
-	url := "/token";
+	url := "/token"
 
 	r, err := s.requester.Request(s, url)
 
@@ -114,7 +114,7 @@ func (s *CalendarService) GetClientToken() (*ClientToken, error) {
 }
 
 func (s *CalendarService) GetCalendlyLink() (string, error) {
-	url := "/calendly/link";
+	url := "/calendly/link"
 
 	r, err := s.requester.Request(s, url)
 
@@ -134,7 +134,7 @@ func (s *CalendarService) SetCalendlyLink(url string) (string, error) {
 
 	data, _ := json.Marshal(setRequest)
 
-	url = "/calendly/link";
+	url = "/calendly/link"
 
 	r, err := s.requester.Request(s, url, string(data))
 
@@ -154,7 +154,7 @@ func (s *CalendarService) AddEvent(summary string, description string, start tim
 
 	data, _ := json.Marshal(eventRequest)
 
-	url := "/calendar/events";
+	url := "/calendar/events"
 
 	r, err := s.requester.Request(s, url, string(data))
 
@@ -181,7 +181,7 @@ func (s *CalendarService) AddTask(title string, due time.Time) (*tasks.Task, err
 
 	data, _ := json.Marshal(taskRequest)
 
-	url := "/calendar/tasks";
+	url := "/calendar/tasks"
 
 	r, err := s.requester.Request(s, url, string(data))
 
@@ -206,7 +206,7 @@ func (s *CalendarService) AddTask(title string, due time.Time) (*tasks.Task, err
 func (s *CalendarService) GetEvents(days ...int) ([]*calendar.Event, error) {
 	noDays := 0
 
-	url := "/calendar/events";
+	url := "/calendar/events"
 
 	if len(days) > 0 && days[0] > 0 {
 		noDays = days[0]
@@ -243,7 +243,7 @@ func (s *CalendarService) GetEvents(days ...int) ([]*calendar.Event, error) {
 }
 
 func (s *CalendarService) GetTasks() ([]*tasks.Task, error) {
-	url := "/calendar/tasks";
+	url := "/calendar/tasks"
 
 	r, err := s.requester.Request(s, url)
 

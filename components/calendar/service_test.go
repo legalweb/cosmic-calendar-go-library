@@ -57,7 +57,7 @@ func TestGetClientToken(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	
+
 	client.SetResponse(200, "{\"ErrorMessage\":\"\",\"Response\":{\"NoToken\":\"\"},\"ResponseCode\": 200}")
 	_, err = x.GetClientToken()
 	if err == nil {
@@ -97,7 +97,7 @@ func TestGetOAuthURLs(t *testing.T) {
 	if !e {
 		t.Error("test url not found in return")
 	}
-	
+
 	client.SetResponse(200, "{\"ErrorMessage\": \"\",\"Response\":{\"NoURLS\":\"\",\"Message\": \"OAuth URLs\"},\"ResponseCode\": 200}")
 	_, err = x.GetOAuthURLs()
 	if err == nil {
@@ -395,12 +395,12 @@ func makeRemarshalPanic() (error, err error) {
 
 	c, err := Default()
 	if err != nil {
-		return err,nil
+		return err, nil
 	}
 
 	err = c.remarshal(make(chan int), nil)
 
-	return err,nil
+	return err, nil
 }
 
 func testConfig() CalendarServiceConfig {
